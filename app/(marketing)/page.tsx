@@ -1,25 +1,156 @@
-// TODO: after cloning, replace these sections with your own landing page. They
-// present the starter itself, not your product. You can then delete
-// components/marketing/hero-starter.tsx, module-deck.tsx, stack-marquee.tsx,
-// stack-logos.tsx, modules-showcase.tsx, panel-demo.tsx, why-modular.tsx and
-// closing-cta.tsx.
-import { ClosingCta } from "@/components/marketing/closing-cta"
-import { HeroStarter } from "@/components/marketing/hero-starter"
-import { ModulesShowcase } from "@/components/marketing/modules-showcase"
-import { StackMarquee } from "@/components/marketing/stack-marquee"
-import { WhyModular } from "@/components/marketing/why-modular"
+import { ArrowRight } from "lucide-react"
+import Link from "next/link"
+
+import { CategoryTabs } from "@/components/marketing/category-tabs"
+import { GridSection } from "@/components/marketing/grid-section"
+import { BlurImage } from "@/components/shared/blur-image"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { buttonVariants } from "@/components/ui/button"
+import { blogAuthors, blogCategories, type BlogAuthor } from "@/config/blog"
+import { getBlurDataURL } from "@/lib/content/blur"
+import { blogSource } from "@/lib/content/blog"
 import { buildMetadata } from "@/lib/metadata"
+import { cn, formatDate } from "@/lib/utils"
 
-export const metadata = buildMetadata({ path: "/" })
+// Three posts: a full row of the grid.
+const FEATURED_POSTS = 3
 
-export default function HomePage() {
+export const metadata = buildMetadata({
+  title: "Writing about what we build",
+  description: "Essays and guides on running a blog and its admin dashboard.",
+  path: "/",
+})
+
+export default async function HomePage() {
+  const posts = blogSource
+    .getPages()
+    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  const featured = posts.slice(0, FEATURED_POSTS)
+
+  // Cover previews, generated from the files in /public at build time.
+  const blurDataURLs = new Map(
+    await Promise.all(
+      featured.map(
+        async (post) =>
+          [post.url, await getBlurDataURL(post.data.image)] as const
+      )
+    )
+  )
+
+  const tabs = [
+    { key: "all", label: "All posts", href: "/blog" },
+    ...Object.entries(blogCategories).map(([key, value]) => ({
+      key,
+      label: value.title,
+      href: `/blog?category=${key}`,
+    })),
+  ]
+
   return (
     <>
-      <HeroStarter />
-      <StackMarquee />
-      <ModulesShowcase />
-      <WhyModular />
-      <ClosingCta />
+      <GridSection lines innerClassName="py-20 sm:py-28">
+        <div className="max-w-3xl">
+          <h1 className="font-display text-4xl font-medium tracking-[-0.03em] text-balance sm:text-5xl md:text-6xl md:leading-[1.08]">
+            Notes from behind the blog
+          </h1>
+          <p className="mt-5 max-w-2xl text-lg text-pretty text-muted-foreground sm:text-xl">
+            Essays on shipping software, the decisions behind it, and what
+            changed along the way.
+          </p>
+
+          <div className="mt-9 flex flex-wrap items-center gap-3">
+            <Link
+              href="/blog"
+              className={cn(buttonVariants({ size: "lg" }), "px-5")}
+            >
+              Read the blog
+              <ArrowRight />
+            </Link>
+          </div>
+        </div>
+      </GridSection>
+
+      <GridSection innerClassName="px-0 py-14 sm:px-0 sm:py-20">
+        <div className="px-4 sm:px-12">
+          <CategoryTabs tabs={tabs} active="all" className="w-fit" />
+        </div>
+
+        <div className="mt-10 grid grid-cols-1 border-t border-grid-border md:grid-cols-3">
+          {featured.map((post, index) => {
+            const author = blogAuthors[post.data.authors[0] as BlogAuthor]
+            return (
+              <Link
+                key={post.url}
+                href={post.url}
+                className={cn(
+                  "group relative flex flex-col transition-colors hover:bg-muted/50",
+                  index > 0 &&
+                    "border-t border-grid-border md:border-t-0 md:border-l"
+                )}
+              >
+                <BlurImage
+                  src={post.data.image}
+                  alt={post.data.title}
+                  width={1200}
+                  height={630}
+                  sizes="(min-width: 768px) 360px, 100vw"
+                  placeholder="blur"
+                  blurDataURL={blurDataURLs.get(post.url)}
+                  className="aspect-[1200/630] w-full bg-muted object-cover"
+                />
+
+                <div className="flex flex-1 flex-col p-6">
+                  <div className="flex flex-wrap gap-2">
+                    {post.data.categories.map((category) => (
+                      <span
+                        key={category}
+                        className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
+                      >
+                        {blogCategories[category as keyof typeof blogCategories]
+                          ?.title ?? category}
+                      </span>
+                    ))}
+                  </div>
+
+                  <h2 className="mt-3 font-display text-lg font-bold text-balance group-hover:underline">
+                    {post.data.title}
+                  </h2>
+                  <p className="mt-2 line-clamp-3 text-sm text-pretty text-muted-foreground">
+                    {post.data.description}
+                  </p>
+
+                  <div className="mt-6 flex items-center gap-2">
+                    {author && (
+                      <Avatar className="size-6">
+                        <AvatarImage src={author.image} alt="" />
+                        <AvatarFallback className="text-[10px]">
+                          {author.name.slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    <time
+                      dateTime={post.data.date.toISOString()}
+                      className="text-sm text-muted-foreground"
+                    >
+                      {formatDate(post.data.date)}
+                    </time>
+                  </div>
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+
+        <div className="px-4 pt-10 sm:px-12">
+          <Link
+            href="/blog"
+            className={cn(buttonVariants({ variant: "outline" }), "px-5")}
+          >
+            Browse all {posts.length} posts
+            <ArrowRight />
+          </Link>
+        </div>
+      </GridSection>
     </>
   )
 }

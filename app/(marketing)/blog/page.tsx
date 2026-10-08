@@ -17,8 +17,6 @@ import {
 import { blogAuthors, blogCategories, type BlogAuthor } from "@/config/blog"
 import { getBlurDataURL } from "@/lib/content/blur"
 import { blogSource } from "@/lib/content/blog"
-import { requireFeature } from "@/lib/features/guard"
-import { isFeatureEnabled } from "@/lib/features/resolve"
 import { buildMetadata } from "@/lib/metadata"
 import { paginate } from "@/lib/pagination"
 import { cn, formatDate } from "@/lib/utils"
@@ -35,7 +33,6 @@ const PAGE_SIZE = 9
 type Props = { searchParams: Promise<{ category?: string; page?: string }> }
 
 export default async function BlogPage({ searchParams }: Props) {
-  await requireFeature("blog")
   const { category, page: rawPage } = await searchParams
 
   const filtered = blogSource
@@ -65,11 +62,6 @@ export default async function BlogPage({ searchParams }: Props) {
       label: value.title,
       href: `/blog?category=${key}`,
     })),
-    // Links out rather than filtering. Hidden when the changelog module is
-    // off so it never points at a 404.
-    ...((await isFeatureEnabled("changelog"))
-      ? [{ key: "changelog", label: "Changelog", href: "/changelog" }]
-      : []),
   ]
 
   return (

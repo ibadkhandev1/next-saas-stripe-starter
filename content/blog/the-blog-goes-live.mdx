@@ -1,0 +1,47 @@
+---
+title: The blog goes live
+description: A reading experience, an admin panel, and no backend behind either of them.
+image: /_static/blog/cover-waves.webp
+date: "2026-09-14"
+authors:
+  - mickasmt
+categories:
+  - news
+related:
+  - ship-the-ui-first
+  - writing-a-fast-blog-engine
+---
+
+The blog is live. Two things ship together, and they are deliberately
+different in shape.
+
+## The reading experience
+
+A homepage that leads with the three most recent posts rather than a pitch, a
+full archive with category filters, and a post page with a table of contents.
+
+Everything on that path is static. Covers are blurred at build time, the post
+list is sorted once and paginated in memory, and there is no request-time data
+access at all. A cold load is a CDN hit and a render.
+
+## The admin panel
+
+Overview, your posts and account settings, behind a dashboard shell
+with a sidebar and a mobile sheet.
+
+It renders from demo data, and the UI is explicit about it: saving a form
+updates local state and confirms with a toast. There is no fake loading state,
+no button that silently fails, and no logout control for a session that does
+not exist.
+
+## What is deliberately missing
+
+No authentication, no database, no payments, no admin panel beyond the shell.
+Not hidden behind flags — removed, so there is nothing to accidentally leave on
+in production and nothing for a reader to reach that was never built.
+
+Wiring a backend is a matter of replacing one module. Until then the whole site
+runs from a clone, which is the point: the front end is finished work, not a
+promise about work to come.
+
+Start with [shipping the UI first](/blog/ship-the-ui-first).

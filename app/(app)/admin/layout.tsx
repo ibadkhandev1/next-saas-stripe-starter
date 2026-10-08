@@ -1,16 +1,16 @@
-import { notFound } from "next/navigation"
-
-import { requireSession } from "@/lib/auth/session"
-import { requireFeature } from "@/lib/features/guard"
-import { canViewAdmin } from "@/modules/admin/preview"
-
-export default async function AdminLayout({
+// Admin section. No role check yet: there is no auth backend, so `/admin` is
+// reachable by anyone.
+//
+// When you wire one up, this is the single place to protect every admin route:
+//
+//   const user = await requireSession()
+//   if (user.role !== "admin") notFound()
+//
+// The nav section that links here is marked `module:admin` in config/nav.ts.
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  await requireFeature("admin")
-  const session = await requireSession()
-  if (!(await canViewAdmin(session))) notFound()
   return children
 }

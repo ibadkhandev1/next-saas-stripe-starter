@@ -1,10 +1,8 @@
 "use client"
 
-import { Ellipsis, LogOut, Monitor, Moon, Sun, UserRound } from "lucide-react"
+import { Ellipsis, Monitor, Moon, Sun, UserRound } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
-import { toast } from "sonner"
 
 import type { ShellUser } from "@/components/dashboard/types"
 import { UserAvatar } from "@/components/shared/user-avatar"
@@ -19,22 +17,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { authClient } from "@/lib/auth/client"
 
 export function UserMenu({ user }: { user: ShellUser }) {
-  const router = useRouter()
   const { theme, setTheme } = useTheme()
-
-  async function signOut() {
-    const { error } = await authClient.signOut()
-    if (error) {
-      toast.error(error.message ?? "Couldn't sign you out.")
-      return
-    }
-    toast.success("Signed out.")
-    router.replace("/login")
-    router.refresh()
-  }
 
   return (
     <DropdownMenu>
@@ -83,11 +68,6 @@ export function UserMenu({ user }: { user: ShellUser }) {
             </DropdownMenuRadioItem>
           </DropdownMenuRadioGroup>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={signOut}>
-          <LogOut />
-          Log out
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

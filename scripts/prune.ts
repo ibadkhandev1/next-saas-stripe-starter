@@ -1,9 +1,9 @@
 // Deletes modules for good: their files, the code marked for them in shared
-// files, their flag and their packages. Modules that depend on a pruned module
-// are pruned too. Marker syntax is documented in AGENTS.md.
+// files, and their packages. Modules that depend on a pruned module are
+// pruned too. Marker syntax is documented in AGENTS.md.
 //
-//   pnpm modules:prune blog changelog          prints what would change
-//   pnpm modules:prune blog changelog --yes    applies it (needs a clean git tree)
+//   npm run modules:prune blog          prints what would change
+//   npm run modules:prune blog --yes    applies it (needs a clean git tree)
 
 import { execFileSync } from "node:child_process"
 import {
@@ -17,10 +17,10 @@ import {
 import path from "node:path"
 
 import {
-  featureKeys,
-  features,
-  isFeatureKey,
-  type FeatureKey,
+  isModuleKey,
+  moduleKeys,
+  modules,
+  type ModuleKey,
 } from "../config/features.ts"
 
 const root = path.resolve(import.meta.dirname, "..")
@@ -42,32 +42,32 @@ function main() {
 
   if (requested.length === 0) {
     throw new PruneError(
-      `Usage: pnpm modules:prune <module...> [--yes]\nModules: ${featureKeys.join(", ")}`
+      `Usage: npm run modules:prune <module...> [--yes]\nModules: ${moduleKeys.join(", ")}`
     )
   }
   for (const key of requested) {
-    if (!isFeatureKey(key)) {
+    if (!isModuleKey(key)) {
       throw new PruneError(
-        `Unknown module "${key}". Modules: ${featureKeys.join(", ")}`
+        `Unknown module "${key}". Modules: ${moduleKeys.join(", ")}`
       )
     }
   }
 
-  const pruned = withDependents(requested as FeatureKey[])
-  const kept = featureKeys.filter((key) => !pruned.has(key))
+  const pruned = withDependents(requested as ModuleKey[])
+  const kept = moduleKeys.filter((key) => !pruned.has(key))
 
   checkDeclaredFiles()
 
-  const keptFiles = new Set(kept.flatMap((key) => features[key].files ?? []))
+  const keptFiles = new Set(kept.flatMap((key) => modules[key].files ?? []))
   const deletedPaths = unique(
-    [...pruned].flatMap((key) => features[key].files ?? [])
+    [...pruned].flatMap((key) => modules[key].files ?? [])
   ).filter((file) => !keptFiles.has(file))
 
   const keptPackages = new Set(
-    kept.flatMap((key) => features[key].packages ?? [])
+    kept.flatMap((key) => modules[key].packages ?? [])
   )
   const removedPackages = unique(
-    [...pruned].flatMap((key) => features[key].packages ?? [])
+    [...pruned].flatMap((key) => modules[key].packages ?? [])
   ).filter((name) => !keptPackages.has(name))
 
   const isDeleted = (file: string) =>
@@ -108,17 +108,17 @@ function main() {
   }
   formatFiles(edits.map((edit) => edit.file))
 
-  console.log("\nDone. Next: pnpm install && pnpm typecheck && pnpm build")
+  console.log("\nDone. Next: npm install && npm run typecheck && npm run build")
 }
 
 // Adds every module that depends, directly or not, on a pruned module.
-function withDependents(requested: FeatureKey[]) {
+function withDependents(requested: ModuleKey[]) {
   const pruned = new Set(requested)
   let grew = true
   while (grew) {
     grew = false
-    for (const key of featureKeys) {
-      const deps: readonly FeatureKey[] = features[key].dependsOn ?? []
+    for (const key of moduleKeys) {
+      const deps: readonly ModuleKey[] = modules[key].dependsOn ?? []
       if (!pruned.has(key) && deps.some((dep) => pruned.has(dep))) {
         pruned.add(key)
         grew = true
@@ -131,8 +131,8 @@ function withDependents(requested: FeatureKey[]) {
 // A module listing a path that no longer exists would silently leave its new
 // location behind: fail instead.
 function checkDeclaredFiles() {
-  const missing = featureKeys.flatMap((key) =>
-    (features[key].files ?? [])
+  const missing = moduleKeys.flatMap((key) =>
+    (modules[key].files ?? [])
       .filter((file) => !existsSync(path.join(root, file)))
       .map((file) => `  ${key}: ${file}`)
   )
@@ -145,7 +145,7 @@ function checkDeclaredFiles() {
 
 // Removes the lines of a marker whose modules are all pruned. A marker that
 // still names a kept module stays, without the pruned names.
-function stripMarkers(file: string, text: string, pruned: Set<FeatureKey>) {
+function stripMarkers(file: string, text: string, pruned: Set<ModuleKey>) {
   const lines = text.split("\n")
   const out: string[] = []
   const blocks: { modules: string; remove: boolean; line: number }[] = []
@@ -165,13 +165,13 @@ function stripMarkers(file: string, text: string, pruned: Set<FeatureKey>) {
     const modules = list.split(",")
     const where = `${file}:${index + 1}`
     for (const key of modules) {
-      if (!isFeatureKey(key)) {
+      if (!isModuleKey(key)) {
         throw new PruneError(`${where}: unknown module "${key}" in marker`)
       }
     }
 
-    const remove = modules.every((key) => pruned.has(key as FeatureKey))
-    const rest = modules.filter((key) => !pruned.has(key as FeatureKey))
+    const remove = modules.every((key) => pruned.has(key as ModuleKey))
+    const rest = modules.filter((key) => !pruned.has(key as ModuleKey))
     const rewritten = line.replace(`module:${list}`, `module:${rest.join(",")}`)
 
     if (kind === "start") {
@@ -218,12 +218,8 @@ function removePackages(names: string[]): Edit | undefined {
 
 // Links to a pruned route still present after the prune, e.g. an unmarked
 // `href="/blog"`. They don't break the build, only lead to a 404.
-function findDeadLinks(
-  files: string[],
-  edits: Edit[],
-  pruned: Set<FeatureKey>
-) {
-  const routes = [...pruned].flatMap((key) => features[key].routes ?? [])
+function findDeadLinks(files: string[], edits: Edit[], pruned: Set<ModuleKey>) {
+  const routes = [...pruned].flatMap((key) => modules[key].routes ?? [])
   if (routes.length === 0) return []
 
   const pattern = new RegExp(
@@ -250,7 +246,7 @@ function report({
   deadLinks,
   apply,
 }: {
-  pruned: Set<FeatureKey>
+  pruned: Set<ModuleKey>
   deletedPaths: string[]
   edits: Edit[]
   removedPackages: string[]

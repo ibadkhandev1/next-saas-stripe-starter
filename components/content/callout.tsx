@@ -1,5 +1,11 @@
 import type { ComponentType, ReactNode } from "react"
-import { CircleCheck, CircleX, Info, Lightbulb, TriangleAlert } from "lucide-react"
+import {
+  CircleCheck,
+  CircleX,
+  Info,
+  Lightbulb,
+  TriangleAlert,
+} from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -62,13 +68,13 @@ export function Callout({
         "my-4 flex gap-3 overflow-hidden rounded-xl border px-4 py-3 text-sm",
         box,
         text,
-        className,
+        className
       )}
     >
       <span className="mt-0.5 flex-none">
         {icon ?? <Icon className="size-4.5" />}
       </span>
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5 leading-6 [&_code]:px-1.5 [&_code]:py-0 [&_a]:text-current [&_a]:underline [&_code]:border-current/20 [&_code]:bg-current/10 [&_code]:text-current [&_p]:my-0 [&_strong]:text-current">
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5 leading-6 [&_a]:text-current [&_a]:underline [&_code]:border-current/20 [&_code]:bg-current/10 [&_code]:px-1.5 [&_code]:py-0 [&_code]:text-current [&_p]:my-0 [&_strong]:text-current">
         {title && <p className="my-0 font-medium">{title}</p>}
         {children}
       </div>

@@ -1,4 +1,3 @@
-import type { ShellUser } from "@/components/dashboard/types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 
@@ -11,20 +10,22 @@ function getInitials(name: string) {
     .toUpperCase()
 }
 
+// Takes any object with a name and an optional image, so it works for the
+// signed-in user and for the admin's list of authors alike.
 export function UserAvatar({
   user,
   className,
   fallbackClassName,
 }: {
-  user: Pick<ShellUser, "name" | "image">
+  user: { name: string; image: string | null } | undefined
   className?: string
   fallbackClassName?: string
 }) {
   return (
     <Avatar className={className}>
-      {user.image && <AvatarImage src={user.image} alt="" />}
+      {user?.image && <AvatarImage src={user.image} alt="" />}
       <AvatarFallback className={cn(fallbackClassName)}>
-        {getInitials(user.name)}
+        {user ? getInitials(user.name) : "?"}
       </AvatarFallback>
     </Avatar>
   )

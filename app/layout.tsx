@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import { Geist_Mono, Inter } from "next/font/google"
 
 import "./globals.css"
-import { DevToolbar } from "@/components/dev/dev-toolbar"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { siteConfig } from "@/config/site"
@@ -24,15 +23,7 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
-  keywords: [
-    "Next.js",
-    "React",
-    "SaaS starter",
-    "Better Auth",
-    "Drizzle ORM",
-    "Stripe",
-    "Tailwind CSS",
-  ],
+  keywords: ["Next.js", "React", "blogging", "MDX", "Tailwind CSS"],
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -68,7 +59,6 @@ export default function RootLayout({
         <ThemeProvider>
           {children}
           <Toaster />
-          {process.env.NODE_ENV === "development" && <DevToolbar />}
         </ThemeProvider>
       </body>
     </html>

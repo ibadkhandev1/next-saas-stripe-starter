@@ -1,0 +1,69 @@
+---
+title: Writing a blog engine that stays fast
+description: Covers are decoded once at build time, lists are paginated in memory, and nothing on the reading path touches a server.
+image: /_static/blog/cover-modules.webp
+date: "2026-09-24"
+authors:
+  - mickasmt
+  - shadcn
+categories:
+  - education
+related: []
+---
+
+A blog is read far more than it is written, so the reading path is where the
+performance budget goes. This one makes three decisions, and all three of them
+are about doing work at build time instead of request time.
+
+## Covers are blurred once, not per request
+
+Blur-up placeholders are the single biggest perceived-speed win on an image
+grid, and the obvious implementation — read the file, resize it, base64 it —
+is a filesystem read and an image decode on every request.
+
+Here a tiny 16×16 WebP is generated from each cover and inlined as a data URL.
+Sixteen pixels wide, roughly a hundred bytes, and the browser has something to
+paint immediately.
+
+The cost is real but paid once: `lib/content/blur.ts` runs at build time, reads
+straight from `/public`, and caches the result in a `Map` so even a rebuild
+only decodes each cover once.
+
+```ts
+const preview = await sharp(file)
+  .resize(16, 16, { fit: "inside" })
+  .webp({ quality: 60 })
+  .toBuffer()
+```
+
+The fallback matters as much as the happy path. A missing or corrupt file
+returns a 1×1 transparent pixel instead of throwing, so one bad upload can
+never take a page down.
+
+## The image stays in the flow, not `fill`
+
+A detail that costs a line of code and saves a class of bugs: the cover image
+uses intrinsic `width` and `height`, not `fill`.
+
+An absolutely positioned image lands on sub-pixel offsets when the grid
+columns don't divide evenly. At a three-column grid that is a fraction of a
+pixel of drift, and the image's own edge — not the cell border — is what ends
+up misaligned with the divider. Keeping the image in normal flow means the
+browser reserves the right box before the bytes arrive, and nothing can paint
+over the grid lines.
+
+## Pagination is a slice, not a query
+
+Nine posts per page, sorted by date, sliced with one helper. There is no
+database, no offset query, and no cursor — the collection is loaded from the
+content directory at build time, which is already the whole dataset.
+
+That works because a blog's content fits in memory. It is the right trade for
+hundreds of posts and the wrong one for a hundred thousand, which is worth
+saying plainly: this architecture earns its simplicity by staying small, and
+the moment it doesn't, the slice is the only thing that has to become a query.
+
+## The short version
+
+Decode once, not per request. Keep images in flow. Slice in memory while the
+data fits, and know exactly which line to change when it doesn't.

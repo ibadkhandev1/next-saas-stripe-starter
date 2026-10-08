@@ -1,9 +1,6 @@
 "use client"
 
-import { LogOut } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
 
 import { navIcons } from "@/components/dashboard/nav-icons"
 import type { ShellUser } from "@/components/dashboard/types"
@@ -19,10 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { NavItem } from "@/config/nav"
-import { authClient } from "@/lib/auth/client"
 
-// The signed-in header's avatar: app shortcuts, theme and sign out in one
-// popover. `items` is the dashboard nav, already filtered by role and flags.
+// The header's avatar: dashboard shortcuts and the theme switch in one popover.
 export function HeaderUserMenu({
   user,
   items,
@@ -30,18 +25,6 @@ export function HeaderUserMenu({
   user: ShellUser
   items: NavItem[]
 }) {
-  const router = useRouter()
-
-  async function signOut() {
-    const { error } = await authClient.signOut()
-    if (error) {
-      toast.error(error.message ?? "Couldn't sign you out.")
-      return
-    }
-    toast.success("Signed out.")
-    router.refresh()
-  }
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -75,11 +58,6 @@ export function HeaderUserMenu({
             )
           })}
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={signOut}>
-          <LogOut />
-          Log out
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <div className="flex items-center justify-between px-2 py-1.5 text-sm">
           <span>Theme</span>

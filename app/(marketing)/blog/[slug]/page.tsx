@@ -2,7 +2,6 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 
 import { getMDXComponents } from "@/components/content/mdx-components"
-import { ProCtaCard } from "@/components/content/pro-cta-card"
 import { TableOfContents } from "@/components/content/table-of-contents"
 import { GridSection } from "@/components/marketing/grid-section"
 import { BlurImage } from "@/components/shared/blur-image"
@@ -16,14 +15,12 @@ import {
 } from "@/config/blog"
 import { getBlurDataURL } from "@/lib/content/blur"
 import { blogSource } from "@/lib/content/blog"
-import { requireFeature } from "@/lib/features/guard"
 import { buildMetadata } from "@/lib/metadata"
 import { formatDate } from "@/lib/utils"
 
 type Props = { params: Promise<{ slug: string }> }
 
 export default async function BlogPostPage({ params }: Props) {
-  await requireFeature("blog")
   const { slug } = await params
   const post = blogSource.getPage([slug])
   if (!post) notFound()
@@ -162,8 +159,6 @@ export default async function BlogPostPage({ params }: Props) {
               )}
 
               <TableOfContents className="pt-4" items={post.data.toc} />
-
-              <ProCtaCard className="mt-8" />
             </div>
           </aside>
         </div>

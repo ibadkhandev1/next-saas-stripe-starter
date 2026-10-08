@@ -1,8 +1,7 @@
 import Link from "next/link"
 
-import { AuthForm } from "@/components/auth/auth-form"
+import { LoginForm } from "@/components/auth/login-form"
 import { siteConfig } from "@/config/site"
-import { getSafeRedirect } from "@/lib/auth/redirect"
 import { buildMetadata } from "@/lib/metadata"
 
 export const metadata = buildMetadata({
@@ -11,8 +10,8 @@ export const metadata = buildMetadata({
   noIndex: true,
 })
 
-// Better Auth redirects a link that has expired or was already spent back
-// here, with the reason in `?error=`.
+// A provider that redirects a failed or spent link back here puts the reason in
+// `?error=`.
 function describeError(error?: string) {
   if (!error) return null
   if (error === "INVALID_TOKEN") {
@@ -24,34 +23,23 @@ function describeError(error?: string) {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; error?: string }>
+  searchParams: Promise<{ error?: string }>
 }) {
-  const { next, error } = await searchParams
-  const redirectTo = getSafeRedirect(next)
+  const { error } = await searchParams
 
   return (
     <>
-      <h1 className="mb-2 text-center text-xl font-semibold">
-        Log in to your {siteConfig.name} account
-      </h1>
+      <h1 className="mb-2 text-center text-xl font-semibold">Welcome back</h1>
       <p className="mb-8 text-center text-sm text-muted-foreground">
-        Continue with Google. Email sign-in comes with Pro.
+        Log in to manage your posts on {siteConfig.name}.
       </p>
 
-      <AuthForm
-        redirectTo={redirectTo}
-        googleEnabled={Boolean(process.env.GOOGLE_CLIENT_ID)}
-        initialError={describeError(error)}
-      />
+      <LoginForm initialError={describeError(error)} />
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
         <Link
-          href={
-            next
-              ? `/register?next=${encodeURIComponent(redirectTo)}`
-              : "/register"
-          }
+          href="/register"
           className="font-semibold text-foreground hover:underline"
         >
           Sign up

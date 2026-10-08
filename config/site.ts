@@ -10,18 +10,14 @@ const url =
 const github = "https://github.com/mickasmt/next-saas-stripe-starter"
 
 export const siteConfig = {
-  name: "SaaS Starter",
+  name: "Blogger",
   // Full title of the home page, also used on social cards.
-  title: "SaaS Starter — the modular Next.js SaaS starter",
+  title: "Blogger — a blog and its admin panel",
   description:
-    "Open-source SaaS starter built with Next.js 16, Better Auth, Drizzle, Neon and Stripe.",
+    "A Next.js blog with an admin dashboard, built to be wired to your own backend.",
   url,
   links: {
     github,
-    pricing: "/pricing",
-    // The Pro page isn't part of this repository; this points at the
-    // README section describing it, keyed to its "## Pro version" heading.
-    pro: `${github}#pro-version`,
     terms: "/terms",
     privacy: "/privacy",
   },

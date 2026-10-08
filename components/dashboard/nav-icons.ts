@@ -1,13 +1,10 @@
 import {
-  Bug,
-  Building2,
-  CreditCard,
+  FileText,
   LayoutGrid,
-  Mail,
-  MailOpen,
-  Rocket,
-  Settings,
   ShieldCheck,
+  Trash2,
+  UserRound,
+  Users,
   type LucideIcon,
 } from "lucide-react"
 
@@ -15,12 +12,9 @@ import type { NavIcon } from "@/config/nav"
 
 export const navIcons: Record<NavIcon, LucideIcon> = {
   dashboard: LayoutGrid,
-  onboarding: Rocket,
-  billing: CreditCard,
-  emails: Mail,
-  emailTemplates: MailOpen,
-  organization: Building2,
-  settings: Settings,
-  admin: ShieldCheck,
-  sentry: Bug,
+  posts: FileText,
+  trash: Trash2,
+  profile: UserRound,
+  shield: ShieldCheck,
+  users: Users,
 }

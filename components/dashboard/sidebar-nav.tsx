@@ -4,7 +4,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 import { navIcons } from "@/components/dashboard/nav-icons"
-import { Badge } from "@/components/ui/badge"
 import type { NavItem, NavSection } from "@/config/nav"
 import { cn } from "@/lib/utils"
 
@@ -62,24 +61,6 @@ export function SidebarNav({
               >
                 {Icon && <Icon className="size-4 shrink-0" />}
                 <span className="truncate">{item.title}</span>
-                {item.pro && (
-                  <Badge
-                    variant="outline"
-                    title={
-                      item.pro === "partial"
-                        ? "Some pages in here are Pro"
-                        : undefined
-                    }
-                    className={cn(
-                      "ml-auto shrink-0",
-                      item.pro === "partial"
-                        ? "border-dashed border-violet-500/35 bg-transparent text-muted-foreground dark:border-violet-400/35"
-                        : "border-violet-500/40 bg-violet-500/10 text-violet-700 dark:border-violet-400/40 dark:bg-violet-400/12 dark:text-violet-200"
-                    )}
-                  >
-                    Pro
-                  </Badge>
-                )}
               </Link>
             )
           })}

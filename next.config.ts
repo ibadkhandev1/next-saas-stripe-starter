@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
 }
 
 const plugins: ((config: NextConfig) => NextConfig)[] = [
-  // Content collections (legal pages, docs, blog, changelog) are declared with
+  // Content collections (blog posts and legal pages) are declared with
   // the macro API in lib/content, so no source.config.ts or generated files
   // are needed.
   createMDX(),
