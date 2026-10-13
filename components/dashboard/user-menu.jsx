@@ -1,0 +1,73 @@
+"use client"
+import { Ellipsis, Monitor, Moon, Sun, UserRound } from "lucide-react"
+import Link from "next/link"
+import { useTheme } from "@/components/theme-provider"
+import { SignOutItem } from "@/components/marketing/header-user-menu"
+import { UserAvatar } from "@/components/shared/user-avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+export function UserMenu({ user }) {
+  const { theme, setTheme } = useTheme()
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="group flex h-9 w-full items-center gap-2 rounded-full pr-1.5 pl-2.5 text-left transition-colors outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 data-popup-open:bg-accent">
+        <UserAvatar
+          user={user}
+          className="size-5"
+          fallbackClassName="text-[9px]"
+        />
+        <span className="min-w-0 flex-1 truncate">{user.name}</span>
+        <span className="grid size-6 shrink-0 place-items-center rounded-full bg-card text-muted-foreground ring-1 ring-input transition-colors group-hover:text-foreground">
+          <Ellipsis className="size-3.5" />
+        </span>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent side="top" align="start" sideOffset={6}>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="max-w-60">
+            <span className="block truncate text-sm font-medium text-foreground">
+              {user.name}
+            </span>
+            <span className="block truncate font-normal">{user.email}</span>
+          </DropdownMenuLabel>
+          <DropdownMenuItem
+            nativeButton={false}
+            render={<Link href="/dashboard/settings/profile" />}
+          >
+            <UserRound />
+            Account settings
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Theme</DropdownMenuLabel>
+          <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+            <DropdownMenuRadioItem value="light">
+              <Sun />
+              Light
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="dark">
+              <Moon />
+              Dark
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="system">
+              <Monitor />
+              System
+            </DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <SignOutItem />
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
