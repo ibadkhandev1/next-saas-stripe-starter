@@ -1,7 +1,9 @@
 "use client"
+
 import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
+
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -14,12 +16,13 @@ import {
 import { Label } from "@/components/ui/label"
 import { ACCEPTED_IMAGE_TYPES, MAX_UPLOAD_BYTES } from "@/config/constants"
 import { cn } from "@/lib/utils"
-// A pick from the library is a real path. An uploaded file becomes an object
-// URL, which previews locally but has to be uploaded before it can be saved.
+
+// A library pick is a real path. An uploaded file becomes an object URL, which
+// previews locally and is only a real image once the form is saved.
 const BLOB_PREFIX = "blob:"
 
 export function isLocalPreview(value) {
-  return value.startsWith(BLOB_PREFIX)
+  return typeof value === "string" && value.startsWith(BLOB_PREFIX)
 }
 
 const ACCEPTED_TYPES = "image/*"
@@ -34,44 +37,62 @@ export function ImagePicker({
   // The actual File, for callers that post multipart. A library pick has no
   // file and passes null. Omit this if the picker is only choosing a path.
   onFileChange,
-  library,
+  library = [],
   // `video` is the 1200x630 cover ratio, `square` for avatars.
   aspect = "video",
 }) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState(value)
+  // The local file's own name. Blob URLs carry none, so without this the only
+  // thing to show is "Uploaded file".
+  const [fileLabel, setFileLabel] = useState(null)
   const fileInputRef = useRef(null)
-  // Object URLs are revoked when they are replaced or the picker unmounts, or
-  // the file stays in memory for the life of the tab.
+
+  // Object URLs are revoked when they are replaced, when the selection is
+  // cleared, and when the picker unmounts. Otherwise the file stays in memory
+  // for the life of the tab.
   const [objectUrl, setObjectUrl] = useState(null)
   useEffect(() => {
     return () => {
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
   }, [objectUrl])
+
   function uploadFile(file) {
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
       toast.error("Use a JPG, PNG or WEBP image.")
       return
     }
     if (file.size > MAX_UPLOAD_BYTES) {
-      toast.error(`Images must be ${MAX_UPLOAD_BYTES / 1024 / 1024} MB or smaller.`)
+      toast.error(
+        `Images must be ${MAX_UPLOAD_BYTES / 1024 / 1024} MB or smaller.`
+      )
       return
     }
-    if (objectUrl) URL.revokeObjectURL(objectUrl)
+
+    // The effect above revokes the previous URL once this state replaces it.
     const url = URL.createObjectURL(file)
     setObjectUrl(url)
+    setFileLabel(file.name)
     onChange(url)
     onFileChange?.(file)
     toast.success("Image selected.")
   }
+
+  function clear() {
+    onChange("")
+    onFileChange?.(null)
+    setObjectUrl(null)
+    setFileLabel(null)
+  }
+
   return (
     <div className="grid gap-2">
       <Label htmlFor={id}>{label}</Label>
 
       <div className="flex flex-wrap items-center gap-2">
-        {/* No library means no dialog to open — the Upload button is then the
-            only way in, which is what a multipart API requires. */}
+        {/* No library means no dialog to open — Upload is then the only way
+            in, which is what a multipart API requires. */}
         {library.length > 0 && (
           <Button
             type="button"
@@ -90,6 +111,7 @@ export function ImagePicker({
 
         <Button
           type="button"
+          id={library.length > 0 ? undefined : id}
           size="sm"
           variant="outline"
           className="px-2.5"
@@ -117,21 +139,44 @@ export function ImagePicker({
             size="sm"
             variant="ghost"
             className="px-2.5 text-muted-foreground"
-            onClick={() => {
-              onChange("")
-              onFileChange?.(null)
-            }}
+            onClick={clear}
           >
             Remove
           </Button>
         )}
-
-        {value && (
-          <span className="text-xs text-muted-foreground">
-            {fileName(value)}
-          </span>
-        )}
       </div>
+
+      {/* The preview. A blob URL cannot go through next/image's optimiser — it
+          has no origin for the loader to fetch from — so it is a plain <img>.
+          Saved images are real URLs, so those do get the optimiser. */}
+      {value && (
+        <div className="flex items-center gap-3">
+          <span
+            className={cn(
+              // `relative` is required: next/image's `fill` positions against
+              // the nearest positioned ancestor.
+              "relative block w-28 shrink-0 overflow-hidden rounded-md border bg-muted",
+              aspect === "square" ? "aspect-square" : "aspect-[1200/630]"
+            )}
+          >
+            {isLocalPreview(value) ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={value} alt="" className="size-full object-cover" />
+            ) : (
+              <Image
+                src={value}
+                alt=""
+                fill
+                sizes="112px"
+                className="object-cover"
+              />
+            )}
+          </span>
+          <span className="min-w-0 truncate text-xs text-muted-foreground">
+            {fileLabel ?? fileNameFromUrl(value)}
+          </span>
+        </div>
+      )}
 
       {error ? (
         <p role="alert" className="text-sm text-destructive">
@@ -143,7 +188,7 @@ export function ImagePicker({
 
       {isLocalPreview(value) && (
         <p className="text-sm text-amber-700 dark:text-amber-400">
-          This file is selected but not uploaded yet. Save the form to store it.
+          Preview only. This file uploads when you save the form.
         </p>
       )}
 
@@ -157,78 +202,76 @@ export function ImagePicker({
               </DialogDescription>
             </DialogHeader>
 
-          <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {library.map((item) => (
-              <li key={item.src}>
-                <button
-                  type="button"
-                  onClick={() => setDraft(item.src)}
-                  aria-pressed={draft === item.src}
-                  className={cn(
-                    "block w-full overflow-hidden rounded-lg border text-left transition-colors",
-                    draft === item.src
-                      ? "border-foreground ring-1 ring-foreground/40"
-                      : "hover:border-foreground/40"
-                  )}
-                >
-                  <span
+            <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {library.map((item) => (
+                <li key={item.src}>
+                  <button
+                    type="button"
+                    onClick={() => setDraft(item.src)}
+                    aria-pressed={draft === item.src}
                     className={cn(
-                      "block bg-muted/40",
-                      aspect === "square"
-                        ? "aspect-square"
-                        : "aspect-[1200/630]"
+                      "block w-full overflow-hidden rounded-lg border text-left transition-colors",
+                      draft === item.src
+                        ? "border-foreground ring-1 ring-foreground/40"
+                        : "hover:border-foreground/40"
                     )}
                   >
-                    <Image
-                      src={item.src}
-                      alt=""
-                      fill
-                      sizes="160px"
+                    <span
                       className={cn(
-                        "object-cover",
-                        aspect === "square" && "object-cover"
+                        "block bg-muted/40",
+                        aspect === "square"
+                          ? "aspect-square"
+                          : "aspect-[1200/630]"
                       )}
-                    />
-                  </span>
-                  <span className="block truncate px-2 py-1.5 text-xs">
-                    {item.label}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+                    >
+                      <Image
+                        src={item.src}
+                        alt=""
+                        fill
+                        sizes="160px"
+                        className="object-cover"
+                      />
+                    </span>
+                    <span className="block truncate px-2 py-1.5 text-xs">
+                      {item.label}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              disabled={!draft}
-              onClick={() => {
-                onChange(draft)
-                // A library pick is a path, not a file.
-                onFileChange?.(null)
-                setOpen(false)
-              }}
-            >
-              Use this image
-            </Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                disabled={!draft}
+                onClick={() => {
+                  onChange(draft)
+                  // A library pick is a path, not a file.
+                  onFileChange?.(null)
+                  setObjectUrl(null)
+                  setFileLabel(null)
+                  setOpen(false)
+                }}
+              >
+                Use this image
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
     </div>
   )
 }
-// The file name, so the current selection is identifiable without a preview.
-function fileName(value) {
+
+/** Fallback label for an image that was saved rather than picked just now. */
+function fileNameFromUrl(value) {
   const lastSegment = value.split("/").at(-1) ?? value
-  return isLocalPreview(value)
-    ? "Uploaded file"
-    : decodeURIComponent(lastSegment)
+  return decodeURIComponent(lastSegment)
 }

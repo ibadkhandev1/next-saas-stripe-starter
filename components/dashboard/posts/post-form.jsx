@@ -203,8 +203,8 @@ export function PostForm({
         footer={
           <p>
             {isEdit
-              ? "Leave the cover alone to keep the current one."
-              : "Pick a cover from the library, or upload your own."}
+              ? "Leave the cover alone to keep the current one, or upload a replacement."
+              : "Required. It uploads when you create the post."}
           </p>
         }
       >
