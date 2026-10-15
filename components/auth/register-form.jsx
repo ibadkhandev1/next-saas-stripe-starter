@@ -1,16 +1,15 @@
 "use client"
 import Link from "next/link"
 import { useState } from "react"
-import { toast } from "sonner"
 import {
   AuthDivider,
   AuthError,
   AuthField,
   AuthPasswordField,
-  GoogleButton,
   PasswordStrength,
   SubmitButton,
 } from "@/components/auth/auth-ui"
+import { GoogleSignIn } from "@/components/auth/google-sign-in"
 import { api, apiErrorMessage } from "@/lib/api/client"
 import { siteConfig } from "@/config/site"
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -135,10 +134,9 @@ export function RegisterForm() {
 
       <AuthDivider />
 
-      <GoogleButton
-        label="Sign up with Google"
-        onClick={() => toast.info("Connect this to your OAuth route.")}
-      />
+      {/* Same endpoint as sign-in: the backend creates the account on first use,
+          so there is nothing to fill in here. */}
+      <GoogleSignIn label="Sign up with Google" />
     </div>
   )
 }

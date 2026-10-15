@@ -35,6 +35,20 @@ export const NAV_ICONS = Object.freeze([
 // cookies same-origin.
 export const API_URL = process.env.API_URL
 
+// Google OAuth client id. Public by design — Google's own docs put it in the
+// browser. The secret never leaves the backend. When this is unset the sign-in
+// button is not rendered, rather than shown and failing on click.
+export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+
+// Google's Identity Services bundle. The backend swaps the code this returns
+// for a verified profile using its own client secret.
+export const GOOGLE_IDENTITY_SCRIPT =
+  "https://accounts.google.com/gsi/client"
+
+// OpenID Connect scopes. Identity only — this app never calls Google's APIs on
+// the user's behalf.
+export const GOOGLE_SCOPES = "openid email profile"
+
 export const API_PREFIX = "/api"
 
 // Cookie names, set by the backend. These must match

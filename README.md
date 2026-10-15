@@ -27,10 +27,11 @@ pages render an empty state rather than an error.
 
 ### Environment
 
-| Variable               | Required | What it does                                              |
-| ---------------------- | -------- | --------------------------------------------------------- |
-| `API_URL`              | yes      | Absolute URL of the Express backend, e.g. `http://localhost:3001`. Server-side only. |
-| `NEXT_PUBLIC_APP_URL`  | no       | Public URL, used for canonical URLs, sitemap and social cards. Falls back to `localhost:3000`. |
+| Variable                     | Required | What it does                                                       |
+| ---------------------------- | -------- | ------------------------------------------------------------------ |
+| `API_URL`                    | yes      | Absolute URL of the Express backend, e.g. `http://localhost:3001`. Server-side only. |
+| `NEXT_PUBLIC_APP_URL`        | no       | Public URL, used for canonical URLs, sitemap and social cards. Falls back to `localhost:3000`. |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | no     | Google OAuth client id. Unset means no Google button is rendered.   |
 
 The browser never talks to Express directly. Every call goes through the
 catch-all proxy at `app/api/[...path]/route.js`, which keeps the API URL private,
@@ -110,8 +111,9 @@ or `// module:<key> start` / `end` around a block.
   before opening registration to anyone but yourself.
 - **`/admin/users` has no backend.** There is no users endpoint, so the page can
   only show author ids and post counts, derived from published posts.
-- **OAuth is not implemented.** The "Continue with Google" button on the login
-  screen has no handler.
+- **Google sign-in needs credentials.** The frontend and backend code are both
+  in place; it stays hidden until `NEXT_PUBLIC_GOOGLE_CLIENT_ID` is set here and
+  `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` are set in the backend's `.env`.
 - **Admin routes 404 for everyone.** The backend creates every account with
   `role: "user"`. Promote an account with `npm run create-admin` in the backend
   repo, or change the default there.

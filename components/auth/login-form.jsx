@@ -7,9 +7,9 @@ import {
   AuthError,
   AuthField,
   AuthPasswordField,
-  GoogleButton,
   SubmitButton,
 } from "@/components/auth/auth-ui"
+import { GoogleSignIn } from "@/components/auth/google-sign-in"
 import { api, apiErrorMessage } from "@/lib/api/client"
 import { DEFAULT_LOGIN_REDIRECT } from "@/lib/auth/redirect"
 import { cn } from "@/lib/utils"
@@ -93,7 +93,7 @@ export function LoginForm({ initialError }) {
 
       <AuthDivider />
 
-      <GoogleButton />
+      <GoogleSignIn />
     </div>
   )
 }

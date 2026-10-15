@@ -100,17 +100,21 @@ export function SubmitButton({ pending = false, children, ...props }) {
     </Button>
   )
 }
-// Social sign-in renders but does not navigate until an OAuth route is wired.
-export function GoogleButton({ label = "Continue with Google", onClick }) {
+// Presentational only — the behaviour lives in components/auth/google-sign-in.jsx.
+export function GoogleButton({
+  label = "Continue with Google",
+  pending = false,
+  ...props
+}) {
   return (
     <Button
       type="button"
       variant="outline"
       size="lg"
       className="h-10 w-full"
-      onClick={onClick}
+      {...props}
     >
-      <GoogleIcon />
+      {pending ? <Loader2 className="animate-spin" /> : <GoogleIcon />}
       {label}
     </Button>
   )
