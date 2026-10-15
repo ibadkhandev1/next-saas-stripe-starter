@@ -14,6 +14,24 @@ const nextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        // Google's popup sign-in flow opens a cross-origin popup and polls
+        // window.closed on it to notice when the reader dismisses it. Under
+        // Cross-Origin-Opener-Policy: same-origin that read is blocked, the
+        // watcher throws, and sign-in hangs with no error. This value keeps the
+        // opener relationship while still isolating the browsing context group.
+        source: "/:path*",
+        headers: [
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin-allow-popups",
+          },
+        ],
+      },
+    ]
+  },
 }
 
 const plugins = [
