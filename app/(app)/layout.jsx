@@ -1,6 +1,6 @@
 import { Geist } from "next/font/google"
 import { DashboardShell } from "@/components/dashboard/dashboard-shell"
-import { dashboardNav } from "@/config/nav"
+import { getNavForRole } from "@/config/nav"
 import { requireSession } from "@/lib/auth/session"
 // Dashboard-only font; marketing keeps its own.
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
@@ -10,7 +10,10 @@ export default async function AppLayout({ children }) {
   return (
     <DashboardShell
       className={geist.variable}
-      nav={dashboardNav}
+      // Admin links only reach the markup for an admin. The sidebar and the
+      // mobile sheet both render from this, and /admin still guards itself
+      // separately with requireRole().
+      nav={getNavForRole(user.role)}
       user={{
         name: user.name,
         email: user.email,
