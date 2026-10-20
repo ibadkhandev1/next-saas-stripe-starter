@@ -2,15 +2,20 @@ import { USER_ROLES } from "@/config/constants"
 
 export const dashboardNav = [
   {
+    title: "Overview",
+    items: [{ title: "Overview", href: "/dashboard", icon: "dashboard" }],
+  },
+  {
+    title: "Content",
     items: [
-      { title: "Overview", href: "/dashboard", icon: "dashboard" },
       { title: "Posts", href: "/dashboard/posts", icon: "posts" },
+      { title: "Drafts", href: "/dashboard/posts/drafts", icon: "drafts" },
+      { title: "Trash", href: "/dashboard/posts/trash", icon: "trash" },
     ],
   },
   {
-    title: "Manage",
+    title: "Account",
     items: [
-      { title: "Trash", href: "/dashboard/posts/trash", icon: "trash" },
       {
         title: "Profile",
         href: "/dashboard/settings/profile",

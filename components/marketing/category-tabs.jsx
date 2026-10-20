@@ -79,7 +79,7 @@ export function CategoryMenu({ tabs, active, className }) {
           <button
             type="button"
             className={cn(
-              "flex h-10 w-full items-center gap-2 rounded-lg border border-input bg-background px-4 text-sm",
+              "flex h-10 w-full cursor-pointer items-center gap-2 rounded-lg border border-input bg-background px-4 text-sm",
               className
             )}
           />

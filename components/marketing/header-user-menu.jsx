@@ -21,7 +21,7 @@ export function HeaderUserMenu({ user, items }) {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Open account menu"
-        className="rounded-full transition-shadow outline-none hover:ring-4 hover:ring-neutral-900/5 focus-visible:ring-2 focus-visible:ring-ring/50 data-popup-open:ring-4 data-popup-open:ring-neutral-900/5 dark:hover:ring-white/10 dark:data-popup-open:ring-white/10"
+        className="cursor-pointer rounded-full transition-shadow outline-none hover:ring-4 hover:ring-neutral-900/5 focus-visible:ring-2 focus-visible:ring-ring/50 data-popup-open:ring-4 data-popup-open:ring-neutral-900/5 dark:hover:ring-white/10 dark:data-popup-open:ring-white/10"
       >
         <UserAvatar user={user} fallbackClassName="text-xs" />
       </DropdownMenuTrigger>

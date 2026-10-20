@@ -24,6 +24,7 @@ export const POST_STATUSES = Object.freeze({
 export const NAV_ICONS = Object.freeze([
   "dashboard",
   "posts",
+  "drafts",
   "trash",
   "profile",
   "shield",
@@ -74,6 +75,10 @@ export const POST_STATUS_OPTIONS = Object.freeze([
   { value: POST_STATUSES.DRAFT, label: "Draft" },
   { value: POST_STATUSES.PUBLISHED, label: "Published" },
 ])
+
+// Autocomplete dropdowns. SUGGESTIONS_MAX_VISIBLE keeps a 200-tag vocabulary
+// from turning into a scroll marathon; the rest stay reachable by typing more.
+export const SUGGESTIONS_MAX_VISIBLE = 8
 
 export const PASSWORD_MIN_LENGTH = 6
 export const PASSWORD_MAX_LENGTH = 20

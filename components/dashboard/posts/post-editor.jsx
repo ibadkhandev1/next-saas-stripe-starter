@@ -1,23 +1,38 @@
 "use client"
 
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 
 import { PageContent, PageHeader } from "@/components/dashboard/page-header"
 import { PostForm } from "@/components/dashboard/posts/post-form"
-import { apiErrorMessage, updatePost } from "@/lib/api/posts"
+import { apiErrorMessage, setPostStatus, updatePost } from "@/lib/api/posts"
+import { POST_STATUSES } from "@/config/constants"
 
 export function PostEditor({ post }) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
 
-  async function handleSubmit(values, imageFile) {
+  // A draft's primary action is to publish it. A post that is already out
+  // there is edited, not re-published, so the primary action becomes a save.
+  const isDraft = post.status === POST_STATUSES.DRAFT
+
+  async function handleSubmit(values, imageFile, status) {
     setSaving(true)
     try {
       await updatePost(post.id, values, imageFile)
-      toast.success("Post saved.")
+
+      // The edit endpoint only writes title, description and content, so a
+      // status change is a separate call. It is only made when the status
+      // actually differs, so an ordinary save stays a single request.
+      const wantsDifferentStatus = status !== post.status
+      if (wantsDifferentStatus) {
+        await setPostStatus(post.id, status)
+      }
+
+      toast.success(
+        status === POST_STATUSES.PUBLISHED ? "Post published." : "Post saved."
+      )
       router.push("/dashboard/posts")
     } catch (error) {
       toast.error(apiErrorMessage(error, "Couldn't save the post. Try again."))
@@ -38,25 +53,19 @@ export function PostEditor({ post }) {
 
       <PostForm
         isEdit
+        busy={saving}
         initialValues={{
           title: post.title,
           description: post.description,
           content: post.content,
-          tags: post.tags.join(", "),
+          tags: post.tags,
           category: post.category,
           featuredImage: post.featuredImage,
         }}
-        submitLabel="Save changes"
-        busy={saving}
+        publishLabel={isDraft ? "Publish" : "Save changes"}
         onSubmit={handleSubmit}
         onCancel={() => router.push("/dashboard/posts")}
       />
-
-      <p className="mt-6 text-sm text-muted-foreground">
-        <Link href="/dashboard/posts" className="hover:underline">
-          Back to posts
-        </Link>
-      </p>
     </PageContent>
   )
 }

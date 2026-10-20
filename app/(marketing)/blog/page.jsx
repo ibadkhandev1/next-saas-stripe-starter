@@ -9,7 +9,9 @@ import { GridSection } from "@/components/marketing/grid-section"
 import { BlurImage } from "@/components/shared/blur-image"
 import { Pagination } from "@/components/shared/pagination"
 import { Badge } from "@/components/ui/badge"
-import { getPublishedBlogs } from "@/lib/blogs"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { getCategoryNames, getPublishedBlogs } from "@/lib/blogs"
 import { buildMetadata } from "@/lib/metadata"
 import { cn, formatDate } from "@/lib/utils"
 
@@ -20,15 +22,38 @@ export const metadata = buildMetadata({
 })
 
 export default async function BlogPage({ searchParams }) {
-  const { page: rawPage } = await searchParams
-  const page = Math.max(Number(rawPage) || 1, 1)
+  const params = await searchParams
+  const page = Math.max(Number(params.page) || 1, 1)
+  // The search term and the active category both live in the URL, so the
+  // archive can be linked to and the two work together in any combination.
+  const search = typeof params.search === "string" ? params.search.trim() : ""
+  const category = typeof params.category === "string" ? params.category : ""
 
-  const { posts, pageCount, total } = await getPublishedBlogs({ page })
+  const [{ posts, pageCount, total }, categories] = await Promise.all([
+    getPublishedBlogs({ page, search, category: category || undefined }),
+    getCategoryNames(),
+  ])
+
+  // A tab keeps whatever search is in play, so switching category does not
+  // silently throw the search away.
+  function tabHref(next) {
+    const query = new URLSearchParams()
+    if (next) query.set("category", next)
+    if (search) query.set("search", search)
+    const string = query.toString()
+    return string ? `/blog?${string}` : "/blog"
+  }
 
   const tabs = [
-    { key: "all", label: "All", href: "/blog" },
-    { key: "latest", label: "Latest", href: "/blog" },
+    { key: "all", label: "All", href: tabHref("") },
+    ...categories.map((item) => ({
+      key: item.slug,
+      label: item.name,
+      href: tabHref(item.slug),
+    })),
   ]
+
+  const activeTab = category || "all"
 
   return (
     <>
@@ -39,14 +64,39 @@ export default async function BlogPage({ searchParams }) {
         <p className="mt-2 text-lg text-muted-foreground sm:text-lg">
           {total} {total === 1 ? "post" : "posts"} on the site.
         </p>
+
+        {/* A plain GET form: the search works without JavaScript, and the
+            results are a link you can share. */}
+        <form
+          action="/blog"
+          method="get"
+          role="search"
+          className="mt-7 flex max-w-sm items-center gap-2"
+        >
+          {category && (
+            <input type="hidden" name="category" value={category} />
+          )}
+          <Input
+            type="search"
+            name="search"
+            defaultValue={search}
+            placeholder="Search posts"
+            aria-label="Search posts"
+            className="h-9"
+          />
+          <Button type="submit" size="sm" variant="outline" className="px-2.5">
+            Search
+          </Button>
+        </form>
+
         <CategoryTabs
           tabs={tabs}
-          active="all"
+          active={activeTab}
           className="mt-7 hidden w-fit justify-start sm:flex"
         />
         <CategoryMenu
           tabs={tabs}
-          active="all"
+          active={activeTab}
           className="mt-8 sm:hidden"
         />
       </GridSection>
@@ -148,7 +198,14 @@ export default async function BlogPage({ searchParams }) {
           <Pagination
             page={page}
             pageCount={pageCount}
-            href={(n) => (n > 1 ? `/blog?page=${n}` : "/blog")}
+            href={(n) => {
+              const query = new URLSearchParams()
+              if (n > 1) query.set("page", String(n))
+              if (category) query.set("category", category)
+              if (search) query.set("search", search)
+              const string = query.toString()
+              return string ? `/blog?${string}` : "/blog"
+            }}
           />
         </GridSection>
       )}

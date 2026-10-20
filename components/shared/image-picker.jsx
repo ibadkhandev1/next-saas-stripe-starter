@@ -210,7 +210,7 @@ export function ImagePicker({
                     onClick={() => setDraft(item.src)}
                     aria-pressed={draft === item.src}
                     className={cn(
-                      "block w-full overflow-hidden rounded-lg border text-left transition-colors",
+                      "block w-full cursor-pointer overflow-hidden rounded-lg border text-left transition-colors",
                       draft === item.src
                         ? "border-foreground ring-1 ring-foreground/40"
                         : "hover:border-foreground/40"

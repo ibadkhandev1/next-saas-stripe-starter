@@ -1,6 +1,6 @@
 "use client"
 
-import { Eye, FileText, Pencil, RotateCcw, Trash2 } from "lucide-react"
+import { Eye, FileText, Pencil, RotateCcw, Send, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -20,7 +20,13 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { apiErrorMessage, deletePost, restorePost } from "@/lib/api/posts"
+import {
+  apiErrorMessage,
+  deletePost,
+  restorePost,
+  setPostStatus,
+} from "@/lib/api/posts"
+import { POST_STATUSES } from "@/config/constants"
 import { formatDate } from "@/lib/utils"
 
 // Typed to confirm a destructive action. A constant, not a value read from the
@@ -71,6 +77,24 @@ export function PostsTable({
       router.refresh()
     } catch (error) {
       toast.error(apiErrorMessage(error, "Couldn't restore the post."))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function handlePublish(post) {
+    setBusy(true)
+    try {
+      await setPostStatus(post.id, POST_STATUSES.PUBLISHED)
+      setPosts((previous) =>
+        previous.map((item) =>
+          item.id === post.id ? { ...item, status: POST_STATUSES.PUBLISHED } : item
+        )
+      )
+      toast.success(`"${post.title}" is now published.`)
+      router.refresh()
+    } catch (error) {
+      toast.error(apiErrorMessage(error, "Couldn't publish the post."))
     } finally {
       setBusy(false)
     }
@@ -192,6 +216,19 @@ export function PostsTable({
                             <Eye />
                           </Button>
                         )}
+                        {/* A draft is one click away from being live, and that
+                            click belongs here rather than only in the editor. */}
+                        {post.status === POST_STATUSES.DRAFT && !post.deletedAt && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={busy}
+                            onClick={() => handlePublish(post)}
+                          >
+                            <Send />
+                            Publish
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="outline"
@@ -289,8 +326,10 @@ function PostStatusBadge({ post }) {
       </Badge>
     )
   }
-  return post.status === "published" ? (
-    <Badge variant="secondary">Published</Badge>
+  // Published is green because it is out in the world; a draft stays grey
+  // because it is not.
+  return post.status === POST_STATUSES.PUBLISHED ? (
+    <Badge variant="success">Published</Badge>
   ) : (
     <Badge variant="outline">Draft</Badge>
   )

@@ -165,6 +165,11 @@ function ThemeHotkey() {
     function onKeyDown(event) {
       if (event.defaultPrevented || event.repeat) return
       if (event.metaKey || event.ctrlKey || event.altKey) return
+      // `key` is not guaranteed. It is undefined for IME composition events,
+      // for synthetic events dispatched by extensions and assistive technology,
+      // and for some layouts during key transition. Reading it unguarded threw
+      // on the page and took the whole app down with it.
+      if (typeof event.key !== "string") return
       if (event.key.toLowerCase() !== TOGGLE_HOTKEY) return
       if (isTypingTarget(event.target)) return
       toggleTheme()
