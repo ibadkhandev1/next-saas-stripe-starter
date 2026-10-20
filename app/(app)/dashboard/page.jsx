@@ -6,7 +6,7 @@ import { PageContent, PageHeader } from "@/components/dashboard/page-header"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import { getAccessToken } from "@/lib/auth/session"
-import { getMyBlogs } from "@/lib/blogs"
+import { getMyBlogs, getMyBlogStats } from "@/lib/blogs"
 import { buildMetadata } from "@/lib/metadata"
 import { cn } from "@/lib/utils"
 
@@ -18,18 +18,23 @@ export const metadata = buildMetadata({
 })
 
 export default async function DashboardPage() {
-  const { posts, total } = await getMyBlogs({ token: await getAccessToken() })
+  const token = await getAccessToken()
 
-  const published = posts.filter((post) => post.status === "published")
-  const drafts = posts.filter((post) => post.status === "draft")
+  // The counts come from the backend's own tally. Counting the posts on this
+  // page would report the counts of nine posts, and call them the totals.
+  const [stats, { posts }] = await Promise.all([
+    getMyBlogStats({ token }),
+    getMyBlogs({ token, page: 1 }),
+  ])
+
   const recent = [...posts]
     .sort((a, b) => (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt))
     .slice(0, RECENT_POST_LIMIT)
 
-  const stats = [
-    { label: "Posts", value: total },
-    { label: "Published", value: published.length },
-    { label: "Drafts", value: drafts.length },
+  const figures = [
+    { label: "Posts", value: stats.total },
+    { label: "Published", value: stats.published },
+    { label: "Drafts", value: stats.drafts },
   ]
 
   return (
@@ -37,7 +42,7 @@ export default async function DashboardPage() {
       <PageHeader title="Overview" description="Your blog at a glance." />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        {stats.map((stat) => (
+        {figures.map((stat) => (
           <div key={stat.label} className="rounded-lg border bg-card p-5">
             <p className="text-muted-foreground">{stat.label}</p>
             <p className="mt-1 text-2xl font-semibold tracking-[-0.04em] tabular-nums">

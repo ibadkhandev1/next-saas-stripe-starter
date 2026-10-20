@@ -38,6 +38,10 @@ export function ImagePicker({
   // file and passes null. Omit this if the picker is only choosing a path.
   onFileChange,
   library = [],
+  // Some callers already show a live preview of the current value — the
+  // profile form has a round avatar next to the field — so the thumbnail here
+  // would be the same picture twice.
+  showPreview = true,
   // `video` is the 1200x630 cover ratio, `square` for avatars.
   aspect = "video",
 }) {
@@ -149,7 +153,7 @@ export function ImagePicker({
       {/* The preview. A blob URL cannot go through next/image's optimiser — it
           has no origin for the loader to fetch from — so it is a plain <img>.
           Saved images are real URLs, so those do get the optimiser. */}
-      {value && (
+      {value && showPreview && (
         <div className="flex items-center gap-3">
           <span
             className={cn(

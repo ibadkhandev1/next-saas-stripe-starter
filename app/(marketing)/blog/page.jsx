@@ -8,9 +8,8 @@ import {
 import { GridSection } from "@/components/marketing/grid-section"
 import { BlurImage } from "@/components/shared/blur-image"
 import { Pagination } from "@/components/shared/pagination"
+import { SearchField } from "@/components/shared/search-field"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { getCategoryNames, getPublishedBlogs } from "@/lib/blogs"
 import { buildMetadata } from "@/lib/metadata"
 import { cn, formatDate } from "@/lib/utils"
@@ -67,27 +66,14 @@ export default async function BlogPage({ searchParams }) {
 
         {/* A plain GET form: the search works without JavaScript, and the
             results are a link you can share. */}
-        <form
+        <SearchField
           action="/blog"
-          method="get"
-          role="search"
-          className="mt-7 flex max-w-sm items-center gap-2"
-        >
-          {category && (
-            <input type="hidden" name="category" value={category} />
-          )}
-          <Input
-            type="search"
-            name="search"
-            defaultValue={search}
-            placeholder="Search posts"
-            aria-label="Search posts"
-            className="h-9"
-          />
-          <Button type="submit" size="sm" variant="outline" className="px-2.5">
-            Search
-          </Button>
-        </form>
+          value={search}
+          hidden={category ? { category } : {}}
+          placeholder="Search posts"
+          label="Search posts"
+          className="mt-7 max-w-sm"
+        />
 
         <CategoryTabs
           tabs={tabs}

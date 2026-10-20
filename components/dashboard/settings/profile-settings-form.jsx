@@ -92,6 +92,9 @@ export function ProfileSettingsForm({ user }) {
               value={avatar}
               onChange={setAvatar}
               onFileChange={saveAvatar}
+              // The round avatar beside this field is already a live preview,
+              // so the picker's own thumbnail would be the same picture twice.
+              showPreview={false}
               // Upload only: the API takes a file, and a library of stock photos
               // would be anyone else's face on your profile.
               library={[]}
