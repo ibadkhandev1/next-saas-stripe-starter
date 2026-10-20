@@ -1,5 +1,4 @@
-﻿import { Trash2 } from "lucide-react"
-import Link from "next/link"
+﻿import Link from "next/link"
 
 import { PageContent, PageHeader } from "@/components/dashboard/page-header"
 import { PostsTable } from "@/components/dashboard/posts/posts-table"
@@ -49,16 +48,6 @@ export default async function PostsPage({ searchParams }) {
           />
         </div>
       )}
-
-      <div className="mt-6">
-        <Link
-          href="/dashboard/posts/trash"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <Trash2 className="size-4" />
-          Trash
-        </Link>
-      </div>
     </PageContent>
   )
 }
